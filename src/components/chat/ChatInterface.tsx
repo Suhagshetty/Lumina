@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, Sparkles } from "lucide-react";
 import { useState, FormEvent, useRef, useEffect } from "react";
 import { createConversation, saveMessage } from "@/actions/chat";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import type { Message as DBMessage } from "@/lib/db/schema";
 import { WeatherCard } from "./WeatherCard";
 import { StockCard } from "./StockCard";
 import { F1RaceCard } from "./F1RaceCard";
+
 interface ToolData {
   type: "weather" | "f1" | "stock";
   data: any;
@@ -39,7 +40,7 @@ export function ChatInterface({
       id: m.id,
       role: m.role,
       content: m.content,
-      toolData: m.toolData ? JSON.parse(m.toolData) : undefined, // Parse saved tool data
+      toolData: m.toolData ? JSON.parse(m.toolData) : undefined,
     })),
   );
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +60,6 @@ export function ChatInterface({
       setCurrentConversationId(conversationId);
       hasNavigatedRef.current = false;
 
-      // Update messages from initialMessages
       setMessages(
         initialMessages.map((m) => ({
           id: m.id,
@@ -88,7 +88,6 @@ export function ChatInterface({
     setIsLoading(true);
 
     try {
-      // Create conversation if needed
       let convId = currentConversationId;
       let needsNavigation = false;
 
@@ -99,10 +98,8 @@ export function ChatInterface({
         needsNavigation = true;
       }
 
-      // Save user message (no tool data for user messages)
       await saveMessage(convId, "user", trimmedInput);
 
-      // Call AI API
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -138,7 +135,6 @@ export function ChatInterface({
 
         const chunk = decoder.decode(value, { stream: true });
 
-        // Check for tool data marker
         if (chunk.includes("__TOOL_DATA__")) {
           const match = chunk.match(/__TOOL_DATA__(.+?)__END_TOOL_DATA__/);
           if (match) {
@@ -147,7 +143,6 @@ export function ChatInterface({
             } catch (e) {
               console.error("Failed to parse tool data:", e);
             }
-            // Remove tool data marker from the actual message
             const cleanChunk = chunk.replace(
               /__TOOL_DATA__.+?__END_TOOL_DATA__/,
               "",
@@ -173,10 +168,8 @@ export function ChatInterface({
         );
       }
 
-      // Save assistant message WITH tool data
       await saveMessage(convId, "assistant", assistantMessage, toolDataParsed);
 
-      // Navigate to the new conversation URL AFTER everything is complete
       if (needsNavigation && !hasNavigatedRef.current) {
         hasNavigatedRef.current = true;
         router.push(`/chat/${convId}`);
@@ -200,15 +193,49 @@ export function ChatInterface({
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex flex-col h-full relative">
+      {/* Background Effects */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-slate-500/5 rounded-full blur-3xl" />
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-4">
-              <h2 className="text-2xl font-semibold">Welcome to Lumina! 🌟</h2>
-              <p className="text-muted-foreground max-w-md">
-                Your AI assistant is ready to help. Start a conversation!
-              </p>
+            <div className="text-center space-y-6 max-w-md">
+              <div className="relative inline-block">
+                <div className="absolute inset-0 bg-foreground/10 blur-2xl rounded-full" />
+                <Sparkles className="h-16 w-16 text-foreground relative" />
+              </div>
+              <div className="space-y-3">
+                <h2 className="text-3xl font-bold">
+                  Welcome to{" "}
+                  <span className="bg-gradient-to-r from-foreground to-blue-600 dark:from-white dark:to-blue-400 bg-clip-text text-transparent text-2xl font-extrabold">
+                    Lumina! 🌟
+                  </span>
+                </h2>
+                <p className="text-muted-foreground text-lg">
+                  Your AI assistant is ready to help. Start a conversation!
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-3 text-sm text-left mt-8">
+                <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
+                  <p className="text-muted-foreground">
+                    💬 Ask me anything about weather, F1 races, or stock prices
+                  </p>
+                </Card>
+                <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
+                  <p className="text-muted-foreground">
+                    🌍 Get real-time data from around the world
+                  </p>
+                </Card>
+                <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
+                  <p className="text-muted-foreground">
+                    ⚡ Lightning-fast responses powered by AI
+                  </p>
+                </Card>
+              </div>
             </div>
           </div>
         ) : (
@@ -218,12 +245,12 @@ export function ChatInterface({
                 key={message.id}
                 className={`flex ${
                   message.role === "user" ? "justify-end" : "justify-start"
-                }`}
+                } animate-fade-in`}
               >
                 <div className={`max-w-[80%] space-y-3`}>
                   {/* Render tool card if available */}
                   {message.toolData && (
-                    <>
+                    <div className="animate-fade-in">
                       {message.toolData.type === "weather" && (
                         <WeatherCard data={message.toolData.data} />
                       )}
@@ -233,21 +260,26 @@ export function ChatInterface({
                       {message.toolData.type === "stock" && (
                         <StockCard data={message.toolData.data} />
                       )}
-                    </>
+                    </div>
                   )}
 
                   {/* Regular message card */}
                   {message.content && (
                     <Card
-                      className={`p-4 ${
+                      className={`p-4 transition-all duration-300 ${
                         message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
+                          ? "bg-foreground text-background border-transparent shadow-lg"
+                          : "bg-card border-border backdrop-blur-sm hover:shadow-md"
                       }`}
                     >
                       <div className="whitespace-pre-wrap">
                         {message.content || (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-sm text-muted-foreground">
+                              Thinking...
+                            </span>
+                          </div>
                         )}
                       </div>
                     </Card>
@@ -260,21 +292,32 @@ export function ChatInterface({
         )}
       </div>
 
-      <div className="border-t p-4">
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your message..."
-            disabled={isLoading}
-            className="flex-1"
-            autoFocus
-          />
-          <Button type="submit" disabled={isLoading || !inputValue.trim()}>
+      {/* Input Area */}
+      <div className="border-t border-border bg-card/50 backdrop-blur-xl p-4">
+        <form onSubmit={handleSubmit} className="flex gap-3 max-w-4xl mx-auto">
+          <div className="flex-1 relative">
+            <Input
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Type your message..."
+              disabled={isLoading}
+              className="pr-12 h-12 bg-background/50 backdrop-blur-sm border-border focus:border-foreground/50 transition-colors"
+              autoFocus
+            />
+            {isLoading && (
+              <Loader2 className="h-4 w-4 animate-spin absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            )}
+          </div>
+          <Button
+            type="submit"
+            disabled={isLoading || !inputValue.trim()}
+            size="lg"
+            className="h-12 px-6 bg-foreground hover:bg-foreground/90 text-background transition-all duration-300"
+          >
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
             )}
           </Button>
         </form>

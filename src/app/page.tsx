@@ -57,7 +57,7 @@ export default function FeaturesPage() {
       <nav className="relative border-b border-border bg-card/30 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <h2 className="bg-gradient-to-r from-foreground to-blue-600 dark:from-white dark:to-blue-400 bg-clip-text text-transparent text-2xl font-extrabold">
               Lumina
             </h2>
           </Link>
@@ -354,7 +354,7 @@ export default function FeaturesPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             {/* Left side - Brand & Copyright */}
             <div className="flex flex-col items-center md:items-start gap-3">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <h3 className="bg-gradient-to-r from-foreground to-blue-600 dark:from-white dark:to-blue-400 bg-clip-text text-transparent">
                 Lumina
               </h3>
               <p className="text-muted-foreground text-sm flex items-center gap-2">
