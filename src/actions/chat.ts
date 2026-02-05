@@ -58,6 +58,7 @@ export async function saveMessage(
   conversationId: string,
   role: "user" | "assistant",
   content: string,
+  toolData?: any, // NEW: Optional tool data parameter
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -70,6 +71,7 @@ export async function saveMessage(
       conversationId,
       role,
       content,
+      toolData: toolData ? JSON.stringify(toolData) : null, // NEW: Store as JSON string
     })
     .returning();
 

@@ -16,7 +16,7 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
-  createdAt: timestamp("createdAt").defaultNow(), // Changed from created_at
+  createdAt: timestamp("createdAt").defaultNow(),
 });
 
 // Accounts table (singular: "account")
@@ -91,6 +91,7 @@ export const messages = pgTable("messages", {
     .references(() => conversations.id, { onDelete: "cascade" }),
   role: text("role", { enum: ["user", "assistant"] }).notNull(),
   content: text("content").notNull(),
+  toolData: text("toolData"), // NEW: Stores tool data as JSON string
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

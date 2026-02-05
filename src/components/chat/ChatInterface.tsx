@@ -8,11 +8,19 @@ import { useState, FormEvent, useRef, useEffect } from "react";
 import { createConversation, saveMessage } from "@/actions/chat";
 import { useRouter } from "next/navigation";
 import type { Message as DBMessage } from "@/lib/db/schema";
+import { WeatherCard } from "./WeatherCard";
+import { StockCard } from "./StockCard";
+import { F1RaceCard } from "./F1RaceCard";
+interface ToolData {
+  type: "weather" | "f1" | "stock";
+  data: any;
+}
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  toolData?: ToolData;
 }
 
 interface ChatInterfaceProps {
@@ -31,6 +39,7 @@ export function ChatInterface({
       id: m.id,
       role: m.role,
       content: m.content,
+      toolData: m.toolData ? JSON.parse(m.toolData) : undefined, // Parse saved tool data
     })),
   );
   const [isLoading, setIsLoading] = useState(false);
@@ -44,13 +53,23 @@ export function ChatInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Update conversation ID when prop changes
+  // Update conversation ID and messages when prop changes
   useEffect(() => {
     if (conversationId) {
       setCurrentConversationId(conversationId);
-      hasNavigatedRef.current = false; // Reset navigation flag
+      hasNavigatedRef.current = false;
+
+      // Update messages from initialMessages
+      setMessages(
+        initialMessages.map((m) => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          toolData: m.toolData ? JSON.parse(m.toolData) : undefined,
+        })),
+      );
     }
-  }, [conversationId]);
+  }, [conversationId, initialMessages]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -74,19 +93,16 @@ export function ChatInterface({
       let needsNavigation = false;
 
       if (!convId) {
-        console.log("Creating new conversation...");
         const newConv = await createConversation(trimmedInput.substring(0, 50));
         convId = newConv.id;
         setCurrentConversationId(convId);
         needsNavigation = true;
       }
 
-      // Save user message
-      console.log("Saving user message...");
+      // Save user message (no tool data for user messages)
       await saveMessage(convId, "user", trimmedInput);
 
       // Call AI API
-      console.log("Calling AI API with messages:", [...messages, userMessage]);
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -98,63 +114,71 @@ export function ChatInterface({
         }),
       });
 
-      console.log("Response status:", response.status);
-      console.log("Response ok:", response.ok);
-
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API Error:", errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const reader = response.body?.getReader();
-      if (!reader) {
-        console.error("No reader available");
-        throw new Error("No reader available");
-      }
+      if (!reader) throw new Error("No reader available");
 
       const decoder = new TextDecoder();
       let assistantMessage = "";
+      let toolDataParsed: ToolData | null = null;
 
       const assistantId = (Date.now() + 1).toString();
-      console.log("Creating assistant message placeholder:", assistantId);
 
       setMessages((prev) => [
         ...prev,
         { id: assistantId, role: "assistant", content: "" },
       ]);
 
-      let chunkCount = 0;
       while (true) {
         const { done, value } = await reader.read();
-        if (done) {
-          console.log("Stream complete. Total chunks:", chunkCount);
-          break;
-        }
+        if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        chunkCount++;
-        console.log(`Chunk ${chunkCount}:`, chunk.substring(0, 50) + "...");
 
-        assistantMessage += chunk;
+        // Check for tool data marker
+        if (chunk.includes("__TOOL_DATA__")) {
+          const match = chunk.match(/__TOOL_DATA__(.+?)__END_TOOL_DATA__/);
+          if (match) {
+            try {
+              toolDataParsed = JSON.parse(match[1]);
+            } catch (e) {
+              console.error("Failed to parse tool data:", e);
+            }
+            // Remove tool data marker from the actual message
+            const cleanChunk = chunk.replace(
+              /__TOOL_DATA__.+?__END_TOOL_DATA__/,
+              "",
+            );
+            assistantMessage += cleanChunk;
+          } else {
+            assistantMessage += chunk;
+          }
+        } else {
+          assistantMessage += chunk;
+        }
 
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === assistantId ? { ...m, content: assistantMessage } : m,
+            m.id === assistantId
+              ? {
+                  ...m,
+                  content: assistantMessage,
+                  toolData: toolDataParsed || undefined,
+                }
+              : m,
           ),
         );
       }
 
-      console.log("Final assistant message:", assistantMessage);
-
-      // Save assistant message
-      console.log("Saving assistant message...");
-      await saveMessage(convId, "assistant", assistantMessage);
+      // Save assistant message WITH tool data
+      await saveMessage(convId, "assistant", assistantMessage, toolDataParsed);
 
       // Navigate to the new conversation URL AFTER everything is complete
       if (needsNavigation && !hasNavigatedRef.current) {
         hasNavigatedRef.current = true;
-        console.log("Navigating to new conversation:", convId);
         router.push(`/chat/${convId}`);
       } else {
         router.refresh();
@@ -196,19 +220,39 @@ export function ChatInterface({
                   message.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                <Card
-                  className={`max-w-[80%] p-4 ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  }`}
-                >
-                  <div className="whitespace-pre-wrap">
-                    {message.content || (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    )}
-                  </div>
-                </Card>
+                <div className={`max-w-[80%] space-y-3`}>
+                  {/* Render tool card if available */}
+                  {message.toolData && (
+                    <>
+                      {message.toolData.type === "weather" && (
+                        <WeatherCard data={message.toolData.data} />
+                      )}
+                      {message.toolData.type === "f1" && (
+                        <F1RaceCard data={message.toolData.data} />
+                      )}
+                      {message.toolData.type === "stock" && (
+                        <StockCard data={message.toolData.data} />
+                      )}
+                    </>
+                  )}
+
+                  {/* Regular message card */}
+                  {message.content && (
+                    <Card
+                      className={`p-4 ${
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
+                      <div className="whitespace-pre-wrap">
+                        {message.content || (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        )}
+                      </div>
+                    </Card>
+                  )}
+                </div>
               </div>
             ))}
             <div ref={messagesEndRef} />

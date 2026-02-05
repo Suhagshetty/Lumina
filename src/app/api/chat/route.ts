@@ -11,18 +11,14 @@ export async function POST(req: Request) {
 
   const { messages } = await req.json();
 
-  console.log("API received messages:", messages);
-
-  // Analyze the last user message to determine if we need to call an API
   const lastMessage = messages[messages.length - 1];
   const userMessage = lastMessage.content.toLowerCase();
 
-  console.log("User message (lowercase):", userMessage);
-
   let systemPrompt = "You are Lumina, a helpful AI assistant.";
   let additionalContext = "";
+  let toolData: any = null;
 
-  // Common company name to stock symbol mapping
+  // Company name to stock symbol mapping
   const companyToSymbol: { [key: string]: string } = {
     apple: "AAPL",
     tesla: "TSLA",
@@ -43,15 +39,6 @@ export async function POST(req: Request) {
     target: "TGT",
     starbucks: "SBUX",
     nike: "NKE",
-    adidas: "ADDYY",
-    sony: "SONY",
-    toyota: "TM",
-    ford: "F",
-    gm: "GM",
-    "general motors": "GM",
-    boeing: "BA",
-    airbus: "EADSY",
-    spacex: "SPACE", // Not public but added for reference
   };
 
   try {
@@ -62,12 +49,10 @@ export async function POST(req: Request) {
       );
       const location = locationMatch ? locationMatch[1].trim() : "London";
 
-      console.log("WEATHER DETECTED! Fetching weather for:", location);
       const weatherData = await getWeather(location);
-      console.log("Weather data received:", weatherData);
-      additionalContext = `\n\nCurrent weather data for ${weatherData.location}:\n- Temperature: ${weatherData.temperature}°C (feels like ${weatherData.feelsLike}°C)\n- Condition: ${weatherData.condition} (${weatherData.description})\n- Humidity: ${weatherData.humidity}%\n- Wind Speed: ${weatherData.windSpeed} km/h\n\nPlease provide a natural response using this data.`;
+      toolData = { type: "weather", data: weatherData };
+      additionalContext = `\n\nCurrent weather data for ${weatherData.location}:\n- Temperature: ${weatherData.temperature}°C (feels like ${weatherData.feelsLike}°C)\n- Condition: ${weatherData.condition}\n- Humidity: ${weatherData.humidity}%\n- Wind Speed: ${weatherData.windSpeed} km/h\n\nProvide a brief, natural response about this weather.`;
     }
-
     // F1 detection
     else if (
       userMessage.includes("f1") ||
@@ -76,69 +61,41 @@ export async function POST(req: Request) {
       userMessage.includes("next race") ||
       userMessage.includes("f1 race")
     ) {
-      console.log("F1 DETECTED! Fetching F1 race data...");
-      try {
-        const raceData = await getNextF1Race();
-        console.log("F1 race data received:", raceData);
-        additionalContext = `\n\nNext F1 race information:\n- Race: ${raceData.raceName}\n- Circuit: ${raceData.circuit}\n- Location: ${raceData.location}\n- Date: ${raceData.date}\n- Time: ${raceData.time}\n- Round: ${raceData.round}\n\nPlease provide a natural response using this data.`;
-      } catch (f1Error: any) {
-        console.error("F1 API Error:", f1Error);
-        additionalContext = `\n\nNote: I encountered an error fetching F1 race data: ${f1Error.message}. Please let the user know.`;
-      }
+      const raceData = await getNextF1Race();
+      toolData = { type: "f1", data: raceData };
+      additionalContext = `\n\nNext F1 race:\n- Race: ${raceData.raceName}\n- Circuit: ${raceData.circuit}\n- Location: ${raceData.location}\n- Date: ${raceData.date}\n- Time: ${raceData.time}\n\nProvide a brief, natural response about this race.`;
     }
-
-    // Stock detection - IMPROVED WITH COMPANY NAME MAPPING
+    // Stock detection
     else if (
       userMessage.includes("stock") ||
       userMessage.includes("share") ||
       userMessage.includes("ticker") ||
       userMessage.includes("price of")
     ) {
-      console.log("STOCK DETECTED! Processing...");
-
-      let symbol = "AAPL"; // Default
-
-      // First, try to find uppercase stock symbols (e.g., TSLA, AAPL)
+      let symbol = "AAPL";
       const originalMessage = lastMessage.content;
       const symbolMatch = originalMessage.match(/\b([A-Z]{2,5})\b/);
 
       if (symbolMatch) {
         symbol = symbolMatch[1].toUpperCase();
-        console.log("Found uppercase symbol:", symbol);
       } else {
-        // If no uppercase symbol found, check for company names
-        console.log("No uppercase symbol found, checking company names...");
         for (const [companyName, stockSymbol] of Object.entries(
           companyToSymbol,
         )) {
           if (userMessage.includes(companyName)) {
             symbol = stockSymbol;
-            console.log(
-              `Found company name "${companyName}" -> ${stockSymbol}`,
-            );
             break;
           }
         }
       }
 
-      console.log("Final symbol to fetch:", symbol);
-
-      try {
-        const stockData = await getStockPrice(symbol);
-        console.log("Stock data received:", stockData);
-        additionalContext = `\n\nStock information for ${stockData.symbol}:\n- Current Price: $${stockData.price.toFixed(2)}\n- Change: $${stockData.change.toFixed(2)} (${stockData.changePercent}%)\n- Volume: ${stockData.volume.toLocaleString()}\n- Last Updated: ${stockData.lastUpdated}\n\nPlease provide a natural response using this data.`;
-      } catch (stockError: any) {
-        console.error("Stock API Error:", stockError);
-        additionalContext = `\n\nNote: I encountered an error fetching stock data for ${symbol}: ${stockError.message}. Please let the user know.`;
-      }
+      const stockData = await getStockPrice(symbol);
+      toolData = { type: "stock", data: stockData };
+      additionalContext = `\n\nStock info for ${stockData.symbol}:\n- Price: $${stockData.price.toFixed(2)}\n- Change: $${stockData.change.toFixed(2)} (${stockData.changePercent}%)\n- Volume: ${stockData.volume.toLocaleString()}\n\nProvide a brief, natural response about this stock.`;
     }
   } catch (error: any) {
-    console.error("Error fetching external data:", error);
-    additionalContext = `\n\nNote: I encountered an error fetching the data: ${error.message}. Please let the user know and offer alternatives.`;
+    additionalContext = `\n\nError fetching data: ${error.message}. Please inform the user politely.`;
   }
-
-  console.log("Additional context length:", additionalContext.length);
-  console.log("Streaming response...");
 
   const result = streamText({
     model,
@@ -146,5 +103,39 @@ export async function POST(req: Request) {
     system: systemPrompt + additionalContext,
   });
 
-  return result.toTextStreamResponse();
+  // Create a custom response that includes tool data
+  const stream = result.toTextStreamResponse();
+
+  if (toolData) {
+    // Prepend tool data as a special marker
+    const encoder = new TextEncoder();
+    const toolDataString = `__TOOL_DATA__${JSON.stringify(toolData)}__END_TOOL_DATA__`;
+
+    return new Response(
+      new ReadableStream({
+        async start(controller) {
+          // Send tool data first
+          controller.enqueue(encoder.encode(toolDataString));
+
+          // Then stream the AI response
+          const reader = stream.body?.getReader();
+          if (reader) {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              controller.enqueue(value);
+            }
+          }
+          controller.close();
+        },
+      }),
+      {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+        },
+      },
+    );
+  }
+
+  return stream;
 }
