@@ -3,16 +3,22 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatInterface } from "@/components/chat/ChatInterface";
 import { ChatHistory } from "@/components/chat/ChatHistory";
-import { getConversations } from "@/actions/chat";
+import { getConversations, getConversationMessages } from "@/actions/chat";
 
-export default async function ChatPage() {
+export default async function ConversationPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const session = await auth();
 
   if (!session) {
     redirect("/login");
   }
 
+  const { id } = await params;
   const conversations = await getConversations();
+  const messages = await getConversationMessages(id);
 
   return (
     <div className="flex h-screen flex-col">
@@ -37,9 +43,9 @@ export default async function ChatPage() {
         </div>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <ChatHistory conversations={conversations} />
+        <ChatHistory conversations={conversations} currentConversationId={id} />
         <main className="flex-1 overflow-hidden">
-          <ChatInterface />
+          <ChatInterface conversationId={id} initialMessages={messages} />
         </main>
       </div>
     </div>

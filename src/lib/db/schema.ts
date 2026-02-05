@@ -7,9 +7,7 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
-/* =========================
-   USERS
-========================= */
+// Users table (singular: "user")
 export const user = pgTable("user", {
   id: text("id")
     .primaryKey()
@@ -18,12 +16,10 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("createdAt").defaultNow(), // Changed from created_at
 });
 
-/* =========================
-   ACCOUNTS (NextAuth)
-========================= */
+// Accounts table (singular: "account")
 export const account = pgTable(
   "account",
   {
@@ -45,12 +41,10 @@ export const account = pgTable(
     compoundKey: primaryKey({
       columns: [table.provider, table.providerAccountId],
     }),
-  })
+  }),
 );
 
-/* =========================
-   SESSIONS (NextAuth)
-========================= */
+// Sessions table (singular: "session")
 export const session = pgTable("session", {
   sessionToken: text("sessionToken").primaryKey(),
   userId: text("userId")
@@ -59,9 +53,7 @@ export const session = pgTable("session", {
   expires: timestamp("expires", { mode: "date" }).notNull(),
 });
 
-/* =========================
-   VERIFICATION TOKENS
-========================= */
+// Verification tokens table
 export const verificationToken = pgTable(
   "verificationToken",
   {
@@ -73,63 +65,38 @@ export const verificationToken = pgTable(
     compoundKey: primaryKey({
       columns: [table.identifier, table.token],
     }),
-  })
+  }),
 );
 
-/* =========================
-   CONVERSATIONS
-========================= */
+// Conversations table
 export const conversations = pgTable("conversations", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  userId: text("user_id")
+  userId: text("userId")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  title: text("title"),
-  createdAt: timestamp("created_at").defaultNow(),
+  title: text("title").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-/* =========================
-   MESSAGES (UPDATED)
-========================= */
+// Messages table
 export const messages = pgTable("messages", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  conversationId: text("conversation_id")
+  conversationId: text("conversationId")
     .notNull()
     .references(() => conversations.id, { onDelete: "cascade" }),
-
-  // user | assistant | tool
-  role: text("role", {
-    enum: ["user", "assistant", "tool"],
-  }).notNull(),
-
-  // text for user/assistant, JSON-stringified for tool output
+  role: text("role", { enum: ["user", "assistant"] }).notNull(),
   content: text("content").notNull(),
-
-  // tool metadata (only for role === "tool")
-  toolName: text("tool_name"),
-  toolCallId: text("tool_call_id"),
-
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-/* =========================
-   TYPES
-========================= */
+// Type exports
 export type User = typeof user.$inferSelect;
-export type NewUser = typeof user.$inferInsert;
-
-export type Account = typeof account.$inferSelect;
-export type NewAccount = typeof account.$inferInsert;
-
-export type Session = typeof session.$inferSelect;
-export type NewSession = typeof session.$inferInsert;
-
 export type Conversation = typeof conversations.$inferSelect;
-export type NewConversation = typeof conversations.$inferInsert;
-
 export type Message = typeof messages.$inferSelect;
+export type NewConversation = typeof conversations.$inferInsert;
 export type NewMessage = typeof messages.$inferInsert;
