@@ -16,13 +16,8 @@ import {
   CloudRain,
   Trophy,
   DollarSign,
-  Github,
-  Linkedin,
-  Mail,
-  Twitter,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 export default function FeaturesPage() {
   return (
@@ -32,26 +27,14 @@ export default function FeaturesPage() {
         <ModeToggle />
       </div>
 
-      {/* Animated Background - Theme Aware */}
+      {/* Animated Background */}
       <div className="absolute inset-0 -z-10">
-        {/* Base gradient - adapts to theme */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-black dark:to-slate-950" />
-
-        {/* Grid pattern overlay */}
         <div className="absolute inset-0 bg-grid-pattern opacity-20" />
-
-        {/* Radial gradient mask */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,hsl(var(--background))_100%)]" />
-
-        {/* Accent gradients - adapts to theme */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 dark:bg-blue-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 dark:bg-purple-600/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
       </div>
-
-      {/* Floating Orbs */}
-      <div className="absolute top-20 left-10 w-96 h-96 bg-blue-500/5 dark:bg-blue-500/5 rounded-full blur-3xl animate-pulse-slow" />
-      <div className="absolute bottom-20 right-10 w-[32rem] h-[32rem] bg-purple-500/5 dark:bg-purple-500/5 rounded-full blur-3xl animate-pulse-slow-delayed" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-indigo-500/5 dark:bg-indigo-500/5 rounded-full blur-3xl animate-pulse-slow" />
 
       {/* Navigation */}
       <nav className="relative border-b border-border bg-card/30 backdrop-blur-xl">
@@ -106,9 +89,8 @@ export default function FeaturesPage() {
           {/* Main Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Weather Feature */}
-            <div className="group relative overflow-hidden rounded-3xl border border-border bg-card/50 backdrop-blur-md p-8 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 hover:scale-[1.02] transition-all duration-500">
+            <div className="group relative overflow-hidden rounded-3xl border border-border bg-card/50 backdrop-blur-md p-8 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="absolute inset-0 bg-grid-pattern opacity-5" />
               <div className="relative space-y-6">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center border border-blue-500/20">
                   <Cloud className="w-10 h-10 text-blue-500" />
@@ -153,9 +135,8 @@ export default function FeaturesPage() {
             </div>
 
             {/* F1 Feature */}
-            <div className="group relative overflow-hidden rounded-3xl border border-border bg-card/50 backdrop-blur-md p-8 hover:border-red-500/50 hover:shadow-2xl hover:shadow-red-500/10 hover:scale-[1.02] transition-all duration-500">
+            <div className="group relative overflow-hidden rounded-3xl border border-border bg-card/50 backdrop-blur-md p-8 hover:border-red-500/50 hover:shadow-2xl hover:shadow-red-500/10 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="absolute inset-0 bg-grid-pattern opacity-5" />
               <div className="relative space-y-6">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/20 flex items-center justify-center border border-red-500/20">
                   <Flag className="w-10 h-10 text-red-500" />
@@ -200,9 +181,8 @@ export default function FeaturesPage() {
             </div>
 
             {/* Stock Feature */}
-            <div className="group relative overflow-hidden rounded-3xl border border-border bg-card/50 backdrop-blur-md p-8 hover:border-green-500/50 hover:shadow-2xl hover:shadow-green-500/10 hover:scale-[1.02] transition-all duration-500">
+            <div className="group relative overflow-hidden rounded-3xl border border-border bg-card/50 backdrop-blur-md p-8 hover:border-green-500/50 hover:shadow-2xl hover:shadow-green-500/10 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="absolute inset-0 bg-grid-pattern opacity-5" />
               <div className="relative space-y-6">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center border border-green-500/20">
                   <TrendingUp className="w-10 h-10 text-green-500" />
@@ -347,123 +327,6 @@ export default function FeaturesPage() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="relative border-t border-border bg-card/30 backdrop-blur-xl mt-20">
-        <div className="max-w-6xl mx-auto px-8 py-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            {/* Left side - Brand & Copyright */}
-            <div className="flex flex-col items-center md:items-start gap-3">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                Lumina
-              </h3>
-              <p className="text-muted-foreground text-sm flex items-center gap-2">
-                © 2026 • Made with
-                <span className="text-red-500 animate-pulse">❤️</span>
-                by
-                <span className="font-medium">Suhag S Shetty</span>
-              </p>
-            </div>
-
-            {/* Center - Navigation Links */}
-            <div className="flex flex-wrap items-center justify-center gap-6">
-              <Link
-                href="/#features"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Features
-              </Link>
-              <Separator orientation="vertical" className="h-4" />
-              <Link
-                href="/chat"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Chat
-              </Link>
-              <Separator orientation="vertical" className="h-4" />
-              <Link
-                href="/login"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Login
-              </Link>
-            </div>
-
-            {/* Right side - Social Links */}
-            <div className="flex items-center gap-3">
-              <Button
-                asChild
-                size="icon"
-                variant="ghost"
-                className="rounded-full hover:bg-accent hover:text-blue-500 transition-all duration-300 border border-border"
-              >
-                <Link
-                  href="https://github.com/Suhagshetty"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="GitHub"
-                >
-                  <Github className="w-5 h-5" />
-                </Link>
-              </Button>
-
-              <Button
-                asChild
-                size="icon"
-                variant="ghost"
-                className="rounded-full hover:bg-accent hover:text-blue-500 transition-all duration-300 border border-border"
-              >
-                <Link
-                  href="https://www.linkedin.com/in/suhagshetty07/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="LinkedIn"
-                >
-                  <Linkedin className="w-5 h-5" />
-                </Link>
-              </Button>
-
-              <Button
-                asChild
-                size="icon"
-                variant="ghost"
-                className="rounded-full hover:bg-accent hover:text-blue-500 transition-all duration-300 border border-border"
-              >
-                <Link
-                  href="https://x.com/Suhag_tsx"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="w-5 h-5" />
-                </Link>
-              </Button>
-
-              <Button
-                asChild
-                size="icon"
-                variant="ghost"
-                className="rounded-full hover:bg-accent hover:text-blue-500 transition-all duration-300 border border-border"
-              >
-                <Link
-                  href="https://mail.google.com/mail/u/0/#inbox"
-                  aria-label="Email"
-                >
-                  <Mail className="w-5 h-5" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Bottom text */}
-          <Separator className="my-8" />
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">
-              Built with Next.js, TypeScript, Tailwind CSS, and shadcn/ui
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
