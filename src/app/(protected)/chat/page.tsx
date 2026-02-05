@@ -1,6 +1,7 @@
 import { auth, signOut } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ChatInterface } from "@/components/chat/ChatInterface";
 
 export default async function ChatPage() {
   const session = await auth();
@@ -31,14 +32,8 @@ export default async function ChatPage() {
           </div>
         </div>
       </header>
-      <main className="flex-1 p-4 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h2 className="text-2xl font-semibold">Welcome to Lumina! 🎉</h2>
-          <p className="text-muted-foreground">
-            Logged in as: {session.user?.name || session.user?.email}
-          </p>
-          <p className="text-muted-foreground">Chat interface coming soon...</p>
-        </div>
+      <main className="flex-1 overflow-hidden">
+        <ChatInterface />
       </main>
     </div>
   );

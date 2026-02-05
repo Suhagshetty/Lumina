@@ -7,7 +7,9 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
-// Users table (singular: "user")
+/* =========================
+   USERS
+========================= */
 export const user = pgTable("user", {
   id: text("id")
     .primaryKey()
@@ -19,7 +21,9 @@ export const user = pgTable("user", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Accounts table (singular: "account")
+/* =========================
+   ACCOUNTS (NextAuth)
+========================= */
 export const account = pgTable(
   "account",
   {
@@ -44,7 +48,9 @@ export const account = pgTable(
   })
 );
 
-// Sessions table (singular: "session")
+/* =========================
+   SESSIONS (NextAuth)
+========================= */
 export const session = pgTable("session", {
   sessionToken: text("sessionToken").primaryKey(),
   userId: text("userId")
@@ -53,7 +59,9 @@ export const session = pgTable("session", {
   expires: timestamp("expires", { mode: "date" }).notNull(),
 });
 
-// Verification tokens table
+/* =========================
+   VERIFICATION TOKENS
+========================= */
 export const verificationToken = pgTable(
   "verificationToken",
   {
@@ -68,7 +76,9 @@ export const verificationToken = pgTable(
   })
 );
 
-// Conversations table (keep plural for your app)
+/* =========================
+   CONVERSATIONS
+========================= */
 export const conversations = pgTable("conversations", {
   id: text("id")
     .primaryKey()
@@ -80,7 +90,9 @@ export const conversations = pgTable("conversations", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Messages table (keep plural for your app)
+/* =========================
+   MESSAGES (UPDATED)
+========================= */
 export const messages = pgTable("messages", {
   id: text("id")
     .primaryKey()
@@ -88,13 +100,25 @@ export const messages = pgTable("messages", {
   conversationId: text("conversation_id")
     .notNull()
     .references(() => conversations.id, { onDelete: "cascade" }),
-  role: text("role", { enum: ["user", "assistant"] }).notNull(),
+
+  // user | assistant | tool
+  role: text("role", {
+    enum: ["user", "assistant", "tool"],
+  }).notNull(),
+
+  // text for user/assistant, JSON-stringified for tool output
   content: text("content").notNull(),
-  toolCalls: text("tool_calls"), // JSON string for tool calls
+
+  // tool metadata (only for role === "tool")
+  toolName: text("tool_name"),
+  toolCallId: text("tool_call_id"),
+
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Type exports for TypeScript
+/* =========================
+   TYPES
+========================= */
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
 
