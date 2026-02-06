@@ -3,10 +3,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatInterface } from "@/components/chat/ChatInterface";
 import { ChatHistory } from "@/components/chat/ChatHistory";
-import {
-  getConversations,
-  getConversationMessages,
-} from "@/actions/chat";
+import { getConversations, getConversationMessages } from "@/actions/chat";
 
 export default async function ConversationPage({
   params,
@@ -24,9 +21,9 @@ export default async function ConversationPage({
   const messages = await getConversationMessages(id);
 
   return (
-    <div className="flex h-screen flex-col">
-      <header className="border-b p-4">
-        <div className="flex items-center justify-between">
+    <div className="flex h-screen w-full flex-col overflow-hidden">
+      <header className="flex-shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center justify-between p-4">
           <h1 className="text-2xl font-bold">Lumina</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
@@ -47,7 +44,7 @@ export default async function ConversationPage({
       </header>
       <div className="flex flex-1 overflow-hidden">
         <ChatHistory conversations={conversations} currentConversationId={id} />
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden">
           <ChatInterface conversationId={id} initialMessages={messages} />
         </main>
       </div>
