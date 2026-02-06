@@ -11,22 +11,24 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
+export type AchievementType =
+  | "first_chat"
+  | "milestone_10"
+  | "all_tools"
+  | "weather"
+  | "f1"
+  | "stock";
+
 interface AchievementBadgeProps {
-  type:
-    | "first_chat"
-    | "milestone_10"
-    | "all_tools"
-    | "weather"
-    | "f1"
-    | "stock";
-  onComplete?: () => void;
+  type: AchievementType;
+  onComplete: () => void;
 }
 
 const ACHIEVEMENT_DATA = {
   first_chat: {
     icon: MessageSquare,
     title: "First Conversation",
-    description: "You've started your journey with Lumina!",
+    description: "You've started your journey!",
     color: "from-blue-500 to-purple-500",
     bgColor: "bg-blue-500/20",
   },
@@ -40,14 +42,14 @@ const ACHIEVEMENT_DATA = {
   all_tools: {
     icon: Sparkles,
     title: "Tool Explorer",
-    description: "You've used all 3 tools!",
+    description: "You've used all tools!",
     color: "from-green-500 to-emerald-500",
     bgColor: "bg-green-500/20",
   },
   weather: {
     icon: Cloud,
     title: "Weather Watcher",
-    description: "First weather check unlocked!",
+    description: "First weather check!",
     color: "from-blue-500 to-cyan-500",
     bgColor: "bg-blue-500/20",
   },
@@ -65,147 +67,91 @@ const ACHIEVEMENT_DATA = {
     color: "from-green-500 to-teal-500",
     bgColor: "bg-green-500/20",
   },
-};
+} as const;
 
-export function AchievementBadge({ type, onComplete }: AchievementBadgeProps) {
-  const [isAnimating, setIsAnimating] = useState(true);
+export default function AchievementBadge({
+  type,
+  onComplete,
+}: AchievementBadgeProps) {
+  const [visible, setVisible] = useState(true);
   const achievement = ACHIEVEMENT_DATA[type];
   const Icon = achievement.icon;
 
   useEffect(() => {
-    // Animation completes after 2 seconds
     const timer = setTimeout(() => {
-      setIsAnimating(false);
-      onComplete?.();
+      setVisible(false);
+      onComplete();
     }, 2000);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
 
+  if (!visible) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-      {/* Backdrop with fade in/out */}
-      <div
-        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${
-          isAnimating ? "opacity-100" : "opacity-0"
-        }`}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" />
 
-      {/* Achievement Card with 3D Flip Animation */}
-      <div
-        className={`relative transition-all duration-500 ${
-          isAnimating ? "scale-100 opacity-100" : "scale-0 opacity-0"
-        }`}
-        style={{
-          perspective: "1000px",
-        }}
+      <Card
+        className={`relative w-80 h-80 border-2 ${achievement.bgColor} backdrop-blur-xl animate-pop`}
       >
-        <Card
-          className={`relative w-80 h-80 border-2 ${achievement.bgColor} backdrop-blur-xl overflow-hidden`}
-          style={{
-            transformStyle: "preserve-3d",
-            animation: isAnimating ? "flip360 2s ease-in-out" : "none",
-          }}
-        >
-          {/* Particle effects background */}
-          <div className="absolute inset-0 overflow-hidden">
-            {[...Array(20)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-2 h-2 bg-white/30 rounded-full animate-float"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 2}s`,
-                  animationDuration: `${2 + Math.random() * 2}s`,
-                }}
-              />
-            ))}
+        <div className="relative h-full flex flex-col items-center justify-center p-8 text-center space-y-6">
+          <div className="relative">
+            <div
+              className={`absolute inset-0 bg-gradient-to-r ${achievement.color} blur-3xl opacity-50 rounded-full scale-150`}
+            />
+            <div
+              className={`relative w-28 h-28 rounded-full bg-gradient-to-r ${achievement.color} flex items-center justify-center shadow-2xl`}
+            >
+              <Icon className="w-14 h-14 text-white" />
+            </div>
           </div>
 
-          {/* Content */}
-          <div className="relative h-full flex flex-col items-center justify-center p-8 text-center space-y-6">
-            {/* Icon with glow */}
-            <div className="relative">
-              <div
-                className={`absolute inset-0 bg-gradient-to-r ${achievement.color} opacity-50 blur-3xl rounded-full scale-150`}
-              />
-              <div
-                className={`relative w-32 h-32 rounded-full bg-gradient-to-r ${achievement.color} flex items-center justify-center shadow-2xl`}
-              >
-                <Icon className="w-16 h-16 text-white" strokeWidth={2.5} />
-              </div>
-            </div>
+          <div className="space-y-2">
+            <h3
+              className={`text-2xl font-extrabold bg-gradient-to-r ${achievement.color} bg-clip-text text-transparent`}
+            >
+              {achievement.title}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {achievement.description}
+            </p>
+          </div>
 
-            {/* Text */}
-            <div className="space-y-2">
-              <h3
-                className={`text-3xl font-black bg-gradient-to-r ${achievement.color} bg-clip-text text-transparent`}
-              >
-                {achievement.title}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {achievement.description}
+          <div className="absolute top-6 left-1/2 -translate-x-1/2">
+            <div className="px-4 py-1.5 rounded-full bg-foreground/10 border border-foreground/20">
+              <p className="text-xs font-semibold uppercase tracking-wide">
+                Achievement Unlocked
               </p>
             </div>
-
-            {/* Achievement Unlocked Badge */}
-            <div className="absolute top-6 left-1/2 -translate-x-1/2">
-              <div className="px-4 py-1.5 rounded-full bg-foreground/10 backdrop-blur-sm border border-foreground/20">
-                <p className="text-xs font-semibold tracking-wider uppercase">
-                  Achievement Unlocked
-                </p>
-              </div>
-            </div>
           </div>
+        </div>
+      </Card>
 
-          {/* Shine effect */}
-          <div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-            style={{
-              animation: isAnimating ? "shine 2s ease-in-out" : "none",
-            }}
-          />
-        </Card>
-      </div>
-
-      {/* CSS Animations */}
       <style jsx>{`
-        @keyframes flip360 {
+        @keyframes pop {
           0% {
-            transform: rotateY(0deg) scale(0.8);
+            transform: scale(0.8);
             opacity: 0;
           }
-          20% {
+          100% {
+            transform: scale(1);
             opacity: 1;
           }
-          50% {
-            transform: rotateY(180deg) scale(1.1);
-          }
-          100% {
-            transform: rotateY(360deg) scale(1);
-          }
         }
-
-        @keyframes shine {
-          0% {
-            transform: translateX(-100%) skewX(-15deg);
-          }
-          100% {
-            transform: translateX(200%) skewX(-15deg);
-          }
-        }
-
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px);
+        @keyframes fade-in {
+          from {
             opacity: 0;
           }
-          50% {
-            transform: translateY(-20px);
+          to {
             opacity: 1;
           }
+        }
+        .animate-pop {
+          animation: pop 0.35s ease-out;
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
         }
       `}</style>
     </div>
