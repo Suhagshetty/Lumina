@@ -16,7 +16,8 @@ import type { Message as DBMessage } from "@/lib/db/schema";
 import { WeatherCard } from "../chat/WeatherCard";
 import { StockCard } from "../chat/StockCard";
 import { F1RaceCard } from "../chat/F1RaceCard";
-import { AchievementBadge } from "../chat/AchievementBadge";
+import AchievementBadge from "../chat/AchievementBadge";
+
 import { useAchievements } from "@/hooks/useAchievements";
 
 interface ToolData {
