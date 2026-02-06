@@ -14,7 +14,19 @@ export async function POST(req: Request) {
   const lastMessage = messages[messages.length - 1];
   const userMessage = lastMessage.content.toLowerCase();
 
-  let systemPrompt = "You are Lumina, a helpful AI assistant.";
+  // Enhanced system prompt for better general conversation
+  let systemPrompt = `You are Lumina, a friendly and helpful AI assistant. You can:
+- Answer general questions about any topic
+- Have casual conversations
+- Provide information and explanations
+- Help with tasks and problem-solving
+- Access real-time data using special tools when needed:
+  * Weather information for any location
+  * F1 race schedules
+  * Stock market prices
+
+Always be conversational, helpful, and concise. When users ask about weather, F1, or stocks, I'll provide you with real-time data to include in your response.`;
+
   let additionalContext = "";
   let toolData: any = null;
 
@@ -38,41 +50,65 @@ export async function POST(req: Request) {
     target: "TGT",
     starbucks: "SBUX",
     nike: "NKE",
+    spotify: "SPOT",
+    airbnb: "ABNB",
+    twitter: "TWTR",
+    zoom: "ZM",
+    snapchat: "SNAP",
   };
 
   try {
-    if (userMessage.includes("weather")) {
-      const locationMatch = userMessage.match(
-        /weather (?:in |at |for )?([a-z\s]+)/i,
-      );
+    // Weather detection
+    if (
+      userMessage.includes("weather") ||
+      userMessage.includes("temperature") ||
+      userMessage.includes("forecast") ||
+      userMessage.includes("clima") // Spanish
+    ) {
+      const locationMatch =
+        userMessage.match(/weather (?:in |at |for |of )?([a-z\s]+)/i) ||
+        userMessage.match(/temperature (?:in |at |for |of )?([a-z\s]+)/i) ||
+        userMessage.match(/forecast (?:in |at |for |of )?([a-z\s]+)/i);
+
       const location = locationMatch ? locationMatch[1].trim() : "London";
 
       const weatherData = await getWeather(location);
       toolData = { type: "weather", data: weatherData };
       additionalContext = `\n\nCurrent weather data for ${weatherData.location}:\n- Temperature: ${weatherData.temperature}°C (feels like ${weatherData.feelsLike}°C)\n- Condition: ${weatherData.condition}\n- Humidity: ${weatherData.humidity}%\n- Wind Speed: ${weatherData.windSpeed} km/h\n\nProvide a brief, natural response about this weather.`;
-    } else if (
+    }
+    // F1 detection
+    else if (
       userMessage.includes("f1") ||
       userMessage.includes("formula 1") ||
       userMessage.includes("formula one") ||
       userMessage.includes("next race") ||
-      userMessage.includes("f1 race")
+      userMessage.includes("f1 race") ||
+      userMessage.includes("grand prix") ||
+      userMessage.includes("racing")
     ) {
       const raceData = await getNextF1Race();
       toolData = { type: "f1", data: raceData };
       additionalContext = `\n\nNext F1 race:\n- Race: ${raceData.raceName}\n- Circuit: ${raceData.circuit}\n- Location: ${raceData.location}\n- Date: ${raceData.date}\n- Time: ${raceData.time}\n\nProvide a brief, natural response about this race.`;
-    } else if (
+    }
+    // Stock detection
+    else if (
       userMessage.includes("stock") ||
       userMessage.includes("share") ||
       userMessage.includes("ticker") ||
-      userMessage.includes("price of")
+      userMessage.includes("price of") ||
+      userMessage.includes("market") ||
+      userMessage.includes("trading at")
     ) {
-      let symbol = "AAPL";
+      let symbol = "AAPL"; // Default
       const originalMessage = lastMessage.content;
+
+      // Try to find ticker symbol (e.g., AAPL, TSLA)
       const symbolMatch = originalMessage.match(/\b([A-Z]{2,5})\b/);
 
       if (symbolMatch) {
         symbol = symbolMatch[1].toUpperCase();
       } else {
+        // Try to match company name
         for (const [companyName, stockSymbol] of Object.entries(
           companyToSymbol,
         )) {
@@ -87,8 +123,13 @@ export async function POST(req: Request) {
       toolData = { type: "stock", data: stockData };
       additionalContext = `\n\nStock info for ${stockData.symbol}:\n- Price: $${stockData.price.toFixed(2)}\n- Change: $${stockData.change.toFixed(2)} (${stockData.changePercent}%)\n- Volume: ${stockData.volume.toLocaleString()}\n\nProvide a brief, natural response about this stock.`;
     }
+    // No tool needed - just general conversation
+    else {
+      // The AI will respond naturally without any tool data
+      additionalContext = "";
+    }
   } catch (error: any) {
-    additionalContext = `\n\nError fetching data: ${error.message}. Please inform the user politely.`;
+    additionalContext = `\n\nError fetching data: ${error.message}. Please inform the user politely that you couldn't retrieve the real-time data, but offer to help with something else.`;
   }
 
   const result = streamText({
@@ -99,6 +140,7 @@ export async function POST(req: Request) {
 
   const stream = result.toTextStreamResponse();
 
+  // If we have tool data, inject it into the stream
   if (toolData) {
     const encoder = new TextEncoder();
     const toolDataString = `__TOOL_DATA__${JSON.stringify(toolData)}__END_TOOL_DATA__`;
@@ -106,8 +148,10 @@ export async function POST(req: Request) {
     return new Response(
       new ReadableStream({
         async start(controller) {
+          // Send tool data first
           controller.enqueue(encoder.encode(toolDataString));
 
+          // Then stream the AI response
           const reader = stream.body?.getReader();
           if (reader) {
             while (true) {
@@ -127,5 +171,6 @@ export async function POST(req: Request) {
     );
   }
 
+  // No tool data - just return the normal stream
   return stream;
 }
