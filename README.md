@@ -6,6 +6,8 @@
 
 A modern, AI-powered chat assistant built with Next.js that integrates real-world tools to fetch live weather data, F1 race schedules, and stock prices through natural conversation.
 
+[![Live Website](https://img.shields.io/badge/Live%20Website-Lumina-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://lumina-r7tf.vercel.app/)
+
 ## Features
 
 - OAuth Authentication - Secure login with Google & GitHub

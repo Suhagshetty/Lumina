@@ -27,33 +27,25 @@ import { Separator } from "@/components/ui/separator";
 export default function FeaturesPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
-      {/* Dark Mode Toggle - Fixed Top Right */}
       <div className="fixed top-6 right-6 z-50">
         <ModeToggle />
       </div>
 
-      {/* Animated Background - Theme Aware */}
       <div className="absolute inset-0 -z-10">
-        {/* Base gradient - adapts to theme */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-black dark:to-slate-950" />
 
-        {/* Grid pattern overlay */}
         <div className="absolute inset-0 bg-grid-pattern opacity-20" />
 
-        {/* Radial gradient mask */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,hsl(var(--background))_100%)]" />
 
-        {/* Accent gradients - adapts to theme */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 dark:bg-blue-600/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 dark:bg-purple-600/10 rounded-full blur-3xl" />
       </div>
 
-      {/* Floating Orbs */}
       <div className="absolute top-20 left-10 w-96 h-96 bg-blue-500/5 dark:bg-blue-500/5 rounded-full blur-3xl animate-pulse-slow" />
       <div className="absolute bottom-20 right-10 w-[32rem] h-[32rem] bg-purple-500/5 dark:bg-purple-500/5 rounded-full blur-3xl animate-pulse-slow-delayed" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-indigo-500/5 dark:bg-indigo-500/5 rounded-full blur-3xl animate-pulse-slow" />
 
-      {/* Navigation */}
       <nav className="relative border-b border-border bg-card/30 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -80,7 +72,6 @@ export default function FeaturesPage() {
 
       <div className="relative px-8 py-20">
         <div className="max-w-6xl mx-auto space-y-20">
-          {/* Hero Section */}
           <div className="text-center space-y-6 animate-fade-in">
             <Badge
               variant="outline"
@@ -103,9 +94,7 @@ export default function FeaturesPage() {
             </p>
           </div>
 
-          {/* Main Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Weather Feature */}
             <div className="group relative overflow-hidden rounded-3xl border border-border bg-card/50 backdrop-blur-md p-8 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 hover:scale-[1.02] transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="absolute inset-0 bg-grid-pattern opacity-5" />
@@ -152,7 +141,6 @@ export default function FeaturesPage() {
               </div>
             </div>
 
-            {/* F1 Feature */}
             <div className="group relative overflow-hidden rounded-3xl border border-border bg-card/50 backdrop-blur-md p-8 hover:border-red-500/50 hover:shadow-2xl hover:shadow-red-500/10 hover:scale-[1.02] transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="absolute inset-0 bg-grid-pattern opacity-5" />
@@ -199,7 +187,6 @@ export default function FeaturesPage() {
               </div>
             </div>
 
-            {/* Stock Feature */}
             <div className="group relative overflow-hidden rounded-3xl border border-border bg-card/50 backdrop-blur-md p-8 hover:border-green-500/50 hover:shadow-2xl hover:shadow-green-500/10 hover:scale-[1.02] transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="absolute inset-0 bg-grid-pattern opacity-5" />
@@ -247,7 +234,6 @@ export default function FeaturesPage() {
             </div>
           </div>
 
-          {/* Additional Features Grid */}
           <div className="space-y-8">
             <div className="text-center space-y-4">
               <h2 className="text-4xl font-bold">
@@ -311,7 +297,6 @@ export default function FeaturesPage() {
             </div>
           </div>
 
-          {/* CTA Section */}
           <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-md p-12 text-center space-y-6">
             <div className="absolute inset-0 bg-grid-pattern opacity-10" />
             <div className="relative space-y-6">
@@ -348,11 +333,9 @@ export default function FeaturesPage() {
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="relative border-t border-border bg-card/30 backdrop-blur-xl mt-20">
         <div className="max-w-6xl mx-auto px-8 py-12">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            {/* Left side - Brand & Copyright */}
             <div className="flex flex-col items-center md:items-start gap-3">
               <h3 className="bg-gradient-to-r from-foreground to-blue-600 dark:from-white dark:to-blue-400 bg-clip-text text-transparent">
                 Lumina
@@ -365,7 +348,6 @@ export default function FeaturesPage() {
               </p>
             </div>
 
-            {/* Center - Navigation Links */}
             <div className="flex flex-wrap items-center justify-center gap-6">
               <Link
                 href="/#features"
@@ -389,7 +371,6 @@ export default function FeaturesPage() {
               </Link>
             </div>
 
-            {/* Right side - Social Links */}
             <div className="flex items-center gap-3">
               <Button
                 asChild
@@ -455,7 +436,6 @@ export default function FeaturesPage() {
             </div>
           </div>
 
-          {/* Bottom text */}
           <Separator className="my-8" />
           <div className="text-center">
             <p className="text-xs text-muted-foreground">

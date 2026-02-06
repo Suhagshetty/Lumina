@@ -58,7 +58,7 @@ export async function saveMessage(
   conversationId: string,
   role: "user" | "assistant",
   content: string,
-  toolData?: any, // Optional tool data parameter
+  toolData?: any,
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -71,11 +71,10 @@ export async function saveMessage(
       conversationId,
       role,
       content,
-      toolData: toolData ? JSON.stringify(toolData) : null, // Store as JSON string
+      toolData: toolData ? JSON.stringify(toolData) : null,
     })
     .returning();
 
-  // Update conversation's updatedAt timestamp
   await db
     .update(conversations)
     .set({ updatedAt: new Date() })
@@ -96,7 +95,6 @@ export async function deleteConversation(conversationId: string) {
   revalidatePath("/chat");
 }
 
-// NEW: Get total conversation count for achievement tracking
 export async function getConversationCount() {
   const session = await auth();
   if (!session?.user?.id) {

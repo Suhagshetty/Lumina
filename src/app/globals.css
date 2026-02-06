@@ -3,14 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* =======================
-   THEME TOKENS
-======================= */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* FONT */
   --font-sans: var(--font-source-sans);
 
   --color-sidebar-ring: var(--sidebar-ring);
@@ -47,9 +43,6 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* =======================
-   LIGHT MODE
-======================= */
 :root {
   --radius: 0.75rem;
 
@@ -113,9 +106,6 @@
   --ring: oklch(0.556 0 0);
 }
 
-/* =======================
-   BASE STYLES
-======================= */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -126,9 +116,6 @@
   }
 }
 
-/* =======================
-   CUSTOM ANIMATIONS
-======================= */
 @layer utilities {
   @keyframes fade-in {
     from {
@@ -174,12 +161,10 @@
     animation: pulse-soft 3s ease-in-out infinite;
   }
 
-  /* Smooth scrolling */
   .smooth-scroll {
     scroll-behavior: smooth;
   }
 
-  /* Custom scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
     height: 8px;

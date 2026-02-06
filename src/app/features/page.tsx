@@ -15,7 +15,6 @@ import { Separator } from "@/components/ui/separator";
 export default function FeaturesPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
-      {/* Animated Background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-black dark:to-slate-950" />
         <div className="absolute inset-0 bg-grid-pattern opacity-20" />
@@ -23,17 +22,14 @@ export default function FeaturesPage() {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
       </div>
 
-      {/* NAVBAR */}
       <nav className="relative border-b border-border bg-card/30 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
               Lumina
             </h2>
           </Link>
 
-          {/* Right actions */}
           <div className="flex items-center gap-4">
             <Link
               href="/chat"
@@ -58,10 +54,8 @@ export default function FeaturesPage() {
         </div>
       </nav>
 
-      {/* CONTENT */}
       <main className="relative px-8 py-20">
         <div className="max-w-6xl mx-auto space-y-20">
-          {/* Hero */}
           <div className="text-center space-y-6 animate-fade-in">
             <Badge
               variant="outline"
@@ -81,7 +75,6 @@ export default function FeaturesPage() {
             </p>
           </div>
 
-          {/* CTA */}
           <div className="flex items-center justify-center gap-4">
             <Button asChild size="lg">
               <Link href="/chat" className="flex items-center gap-2">

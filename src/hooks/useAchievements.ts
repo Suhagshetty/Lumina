@@ -34,7 +34,6 @@ export function useAchievements() {
   const [pendingAchievement, setPendingAchievement] =
     useState<AchievementType | null>(null);
 
-  // Load achievements from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -46,7 +45,6 @@ export function useAchievements() {
     }
   }, []);
 
-  // Save achievements to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(achievements));
   }, [achievements]);
@@ -63,7 +61,6 @@ export function useAchievements() {
 
     const key = achievementMap[type];
 
-    // Only show animation if achievement is newly unlocked
     if (!achievements[key]) {
       setPendingAchievement(type);
       setAchievements((prev) => ({ ...prev, [key]: true }));
@@ -74,7 +71,6 @@ export function useAchievements() {
     setPendingAchievement(null);
   };
 
-  // Check if all tools have been used
   const checkAllToolsUnlocked = () => {
     if (
       achievements.weatherUsed &&

@@ -18,7 +18,6 @@ export async function POST(req: Request) {
   let additionalContext = "";
   let toolData: any = null;
 
-  // Company name to stock symbol mapping
   const companyToSymbol: { [key: string]: string } = {
     apple: "AAPL",
     tesla: "TSLA",
@@ -42,7 +41,6 @@ export async function POST(req: Request) {
   };
 
   try {
-    // Weather detection
     if (userMessage.includes("weather")) {
       const locationMatch = userMessage.match(
         /weather (?:in |at |for )?([a-z\s]+)/i,
@@ -52,9 +50,7 @@ export async function POST(req: Request) {
       const weatherData = await getWeather(location);
       toolData = { type: "weather", data: weatherData };
       additionalContext = `\n\nCurrent weather data for ${weatherData.location}:\n- Temperature: ${weatherData.temperature}°C (feels like ${weatherData.feelsLike}°C)\n- Condition: ${weatherData.condition}\n- Humidity: ${weatherData.humidity}%\n- Wind Speed: ${weatherData.windSpeed} km/h\n\nProvide a brief, natural response about this weather.`;
-    }
-    // F1 detection
-    else if (
+    } else if (
       userMessage.includes("f1") ||
       userMessage.includes("formula 1") ||
       userMessage.includes("formula one") ||
@@ -64,9 +60,7 @@ export async function POST(req: Request) {
       const raceData = await getNextF1Race();
       toolData = { type: "f1", data: raceData };
       additionalContext = `\n\nNext F1 race:\n- Race: ${raceData.raceName}\n- Circuit: ${raceData.circuit}\n- Location: ${raceData.location}\n- Date: ${raceData.date}\n- Time: ${raceData.time}\n\nProvide a brief, natural response about this race.`;
-    }
-    // Stock detection
-    else if (
+    } else if (
       userMessage.includes("stock") ||
       userMessage.includes("share") ||
       userMessage.includes("ticker") ||
@@ -103,21 +97,17 @@ export async function POST(req: Request) {
     system: systemPrompt + additionalContext,
   });
 
-  // Create a custom response that includes tool data
   const stream = result.toTextStreamResponse();
 
   if (toolData) {
-    // Prepend tool data as a special marker
     const encoder = new TextEncoder();
     const toolDataString = `__TOOL_DATA__${JSON.stringify(toolData)}__END_TOOL_DATA__`;
 
     return new Response(
       new ReadableStream({
         async start(controller) {
-          // Send tool data first
           controller.enqueue(encoder.encode(toolDataString));
 
-          // Then stream the AI response
           const reader = stream.body?.getReader();
           if (reader) {
             while (true) {

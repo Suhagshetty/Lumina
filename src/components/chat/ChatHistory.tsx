@@ -31,13 +31,11 @@ export function ChatHistory({
 
   return (
     <div className="w-64 border-r border-border bg-card/30 backdrop-blur-xl flex flex-col h-full relative">
-      {/* Background Effect */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute top-0 left-0 w-32 h-32 bg-slate-500/5 rounded-full blur-2xl" />
         <div className="absolute bottom-0 right-0 w-32 h-32 bg-slate-500/5 rounded-full blur-2xl" />
       </div>
 
-      {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-4">
           <div className="relative">
@@ -58,7 +56,6 @@ export function ChatHistory({
         </Button>
       </div>
 
-      {/* Conversations List */}
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
           {conversations.length === 0 ? (
@@ -86,12 +83,10 @@ export function ChatHistory({
                 }`}
                 onClick={() => router.push(`/chat/${conversation.id}`)}
               >
-                {/* Active indicator */}
                 {conversation.id === currentConversationId && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-foreground rounded-r-full" />
                 )}
 
-                {/* Icon */}
                 <div
                   className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
                     conversation.id === currentConversationId
@@ -108,7 +103,6 @@ export function ChatHistory({
                   />
                 </div>
 
-                {/* Text - Better alignment */}
                 <div className="flex-1 min-w-0 flex items-center">
                   <span
                     className={`text-sm truncate ${
@@ -121,7 +115,6 @@ export function ChatHistory({
                   </span>
                 </div>
 
-                {/* Delete Button */}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -136,7 +129,6 @@ export function ChatHistory({
         </div>
       </ScrollArea>
 
-      {/* Footer Info */}
       <div className="p-4 border-t border-border">
         <div className="text-xs text-muted-foreground text-center space-y-1">
           <p className="font-medium">Powered by AI</p>
