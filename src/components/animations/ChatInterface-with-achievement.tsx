@@ -235,137 +235,150 @@ export function ChatInterface({
   };
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="flex flex-col h-screen w-full overflow-hidden">
       {/* Achievement Badge Animation */}
       {pendingAchievement && (
-        <AchievementBadge
-          type={pendingAchievement}
-          onComplete={clearPendingAchievement}
-        />
+        <div className="fixed top-20 right-8 z-50 animate-slide-up">
+          <AchievementBadge
+            type={pendingAchievement}
+            onComplete={clearPendingAchievement}
+          />
+        </div>
       )}
 
       {/* Background Effects */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-slate-500/5 rounded-full blur-3xl" />
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-500/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-slate-500/5 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-6 max-w-md">
-              <div className="relative inline-block">
-                <div className="absolute inset-0 bg-foreground/10 blur-2xl rounded-full" />
-                <Sparkles className="h-16 w-16 text-foreground relative" />
-              </div>
-              <div className="space-y-3">
-                <h2 className="text-3xl font-bold">Welcome to Lumina! 🌟</h2>
-                <p className="text-muted-foreground text-lg">
-                  Your AI assistant is ready to help. Start a conversation!
-                </p>
-              </div>
-              <div className="grid grid-cols-1 gap-3 text-sm text-left mt-8">
-                <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
-                  <p className="text-muted-foreground">
-                    💬 Ask me anything about weather, F1 races, or stock prices
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+          {messages.length === 0 ? (
+            <div className="flex items-center justify-center min-h-[calc(100vh-12rem)]">
+              <div className="text-center space-y-6 max-w-md px-4 animate-fade-in">
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 bg-foreground/10 blur-2xl rounded-full animate-pulse" />
+                  <Sparkles className="h-16 w-16 text-foreground relative" />
+                </div>
+                <div className="space-y-3">
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    Welcome to Lumina! 🌟
+                  </h2>
+                  <p className="text-muted-foreground text-lg">
+                    Your AI assistant is ready to help. Start a conversation!
                   </p>
-                </Card>
-                <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
-                  <p className="text-muted-foreground">
-                    🌍 Get real-time data from around the world
-                  </p>
-                </Card>
-                <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
-                  <p className="text-muted-foreground">
-                    ⚡ Lightning-fast responses powered by AI
-                  </p>
-                </Card>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                } animate-fade-in`}
-              >
-                <div className={`max-w-[80%] space-y-3`}>
-                  {/* Render tool card if available */}
-                  {message.toolData && (
-                    <div className="animate-fade-in">
-                      {message.toolData.type === "weather" && (
-                        <WeatherCard data={message.toolData.data} />
-                      )}
-                      {message.toolData.type === "f1" && (
-                        <F1RaceCard data={message.toolData.data} />
-                      )}
-                      {message.toolData.type === "stock" && (
-                        <StockCard data={message.toolData.data} />
-                      )}
-                    </div>
-                  )}
-
-                  {/* Regular message card */}
-                  {message.content && (
-                    <Card
-                      className={`p-4 transition-all duration-300 ${
-                        message.role === "user"
-                          ? "bg-foreground text-background border-transparent shadow-lg"
-                          : "bg-card border-border backdrop-blur-sm hover:shadow-md"
-                      }`}
-                    >
-                      <div className="whitespace-pre-wrap">
-                        {message.content || (
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm text-muted-foreground">
-                              Thinking...
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </Card>
-                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-3 text-sm text-left mt-8">
+                  <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:scale-[1.02] transition-all duration-300">
+                    <p className="text-muted-foreground">
+                      💬 Ask me anything about weather, F1 races, or stock
+                      prices
+                    </p>
+                  </Card>
+                  <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:scale-[1.02] transition-all duration-300 delay-75">
+                    <p className="text-muted-foreground">
+                      🌍 Get real-time data from around the world
+                    </p>
+                  </Card>
+                  <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:scale-[1.02] transition-all duration-300 delay-150">
+                    <p className="text-muted-foreground">
+                      ⚡ Lightning-fast responses powered by AI
+                    </p>
+                  </Card>
                 </div>
               </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </>
-        )}
+            </div>
+          ) : (
+            <>
+              {messages.map((message, index) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  } animate-fade-in`}
+                  style={{
+                    animationDelay: `${index * 0.05}s`,
+                  }}
+                >
+                  <div className="max-w-[85%] sm:max-w-[80%] space-y-3 w-full">
+                    {/* Render tool card if available */}
+                    {message.toolData && (
+                      <div className="animate-slide-up">
+                        {message.toolData.type === "weather" && (
+                          <WeatherCard data={message.toolData.data} />
+                        )}
+                        {message.toolData.type === "f1" && (
+                          <F1RaceCard data={message.toolData.data} />
+                        )}
+                        {message.toolData.type === "stock" && (
+                          <StockCard data={message.toolData.data} />
+                        )}
+                      </div>
+                    )}
+
+                    {/* Regular message card */}
+                    {message.content && (
+                      <Card
+                        className={`p-4 transition-all duration-300 ${
+                          message.role === "user"
+                            ? "bg-foreground text-background border-transparent shadow-lg hover:shadow-xl"
+                            : "bg-card border-border backdrop-blur-sm hover:shadow-md hover:border-foreground/20"
+                        }`}
+                      >
+                        <div className="whitespace-pre-wrap break-words">
+                          {message.content || (
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span className="text-sm text-muted-foreground">
+                                Thinking...
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-border bg-card/50 backdrop-blur-xl p-4">
-        <form onSubmit={handleSubmit} className="flex gap-3 max-w-4xl mx-auto">
-          <div className="flex-1 relative">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Type your message..."
-              disabled={isLoading}
-              className="pr-12 h-12 bg-background/50 backdrop-blur-sm border-border focus:border-foreground/50 transition-colors"
-              autoFocus
-            />
-            {isLoading && (
-              <Loader2 className="h-4 w-4 animate-spin absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            )}
-          </div>
-          <Button
-            type="submit"
-            disabled={isLoading || !inputValue.trim()}
-            size="lg"
-            className="h-12 px-6 bg-foreground hover:bg-foreground/90 text-background transition-all duration-300"
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Send className="h-5 w-5" />
-            )}
-          </Button>
-        </form>
+      {/* Input Area - Fixed at bottom */}
+      <div className="border-t border-border bg-card/95 backdrop-blur-xl shadow-lg">
+        <div className="max-w-4xl mx-auto p-4">
+          <form onSubmit={handleSubmit} className="flex gap-3">
+            <div className="flex-1 relative">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Type your message..."
+                disabled={isLoading}
+                className="pr-12 h-12 bg-background/50 backdrop-blur-sm border-border focus:border-foreground/50 focus:ring-2 focus:ring-foreground/20 transition-all duration-300"
+                autoFocus
+              />
+              {isLoading && (
+                <Loader2 className="h-4 w-4 animate-spin absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              )}
+            </div>
+            <Button
+              type="submit"
+              disabled={isLoading || !inputValue.trim()}
+              size="lg"
+              className="h-12 px-6 bg-foreground hover:bg-foreground/90 text-background transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );
