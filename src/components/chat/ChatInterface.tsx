@@ -10,7 +10,6 @@ import {
   saveMessage,
   getConversationCount,
 } from "@/actions/chat";
-
 import { useRouter } from "next/navigation";
 import type { Message as DBMessage } from "@/lib/db/schema";
 import { WeatherCard } from "../chat/WeatherCard";
@@ -53,10 +52,12 @@ export function ChatInterface({
   const [isLoading, setIsLoading] = useState(false);
   const [currentConversationId, setCurrentConversationId] =
     useState(conversationId);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isUserAtBottomRef = useRef(true);
   const hasNavigatedRef = useRef(false);
 
-  // Achievement tracking
+  /* -------------------- ACHIEVEMENTS -------------------- */
   const {
     pendingAchievement,
     unlockAchievement,
@@ -64,38 +65,51 @@ export function ChatInterface({
     checkAllToolsUnlocked,
   } = useAchievements();
 
-  // Auto-scroll to bottom when messages change
+  /* -------------------- SCROLL LOGIC (FIXED) -------------------- */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    if (isUserAtBottomRef.current) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages]);
 
-  // Update conversation ID and messages when prop changes
-  useEffect(() => {
-    if (conversationId) {
-      setCurrentConversationId(conversationId);
-      hasNavigatedRef.current = false;
+  const handleScroll = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
 
-      setMessages(
-        initialMessages.map((m) => ({
-          id: m.id,
-          role: m.role,
-          content: m.content,
-          toolData: m.toolData ? JSON.parse(m.toolData) : undefined,
-        })),
-      );
-    }
+    const threshold = 40;
+    isUserAtBottomRef.current =
+      el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+  };
+
+  /* -------------------- PROP UPDATE -------------------- */
+  useEffect(() => {
+    if (!conversationId) return;
+
+    setCurrentConversationId(conversationId);
+    hasNavigatedRef.current = false;
+
+    setMessages(
+      initialMessages.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        toolData: m.toolData ? JSON.parse(m.toolData) : undefined,
+      })),
+    );
   }, [conversationId, initialMessages]);
 
+  /* -------------------- SUBMIT -------------------- */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const trimmedInput = inputValue.trim();
-
-    if (!trimmedInput || isLoading) return;
+    if (!inputValue.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: trimmedInput,
+      content: inputValue.trim(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -108,14 +122,16 @@ export function ChatInterface({
       let isFirstMessage = false;
 
       if (!convId) {
-        const newConv = await createConversation(trimmedInput.substring(0, 50));
+        const newConv = await createConversation(
+          userMessage.content.substring(0, 50),
+        );
         convId = newConv.id;
         setCurrentConversationId(convId);
         needsNavigation = true;
         isFirstMessage = true;
       }
 
-      await saveMessage(convId, "user", trimmedInput);
+      await saveMessage(convId!, "user", userMessage.content);
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -128,18 +144,13 @@ export function ChatInterface({
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const reader = response.body?.getReader();
-      if (!reader) throw new Error("No reader available");
+      if (!reader) throw new Error("No reader");
 
       const decoder = new TextDecoder();
-      let assistantMessage = "";
+      const assistantId = `${Date.now()}-ai`;
+      let assistantText = "";
       let toolDataParsed: ToolData | null = null;
-
-      const assistantId = (Date.now() + 1).toString();
 
       setMessages((prev) => [
         ...prev,
@@ -147,7 +158,7 @@ export function ChatInterface({
       ]);
 
       while (true) {
-        const { done, value } = await reader.read();
+        const { value, done } = await reader.read();
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
@@ -155,21 +166,14 @@ export function ChatInterface({
         if (chunk.includes("__TOOL_DATA__")) {
           const match = chunk.match(/__TOOL_DATA__(.+?)__END_TOOL_DATA__/);
           if (match) {
-            try {
-              toolDataParsed = JSON.parse(match[1]);
-            } catch (e) {
-              console.error("Failed to parse tool data:", e);
-            }
-            const cleanChunk = chunk.replace(
-              /__TOOL_DATA__.+?__END_TOOL_DATA__/,
-              "",
-            );
-            assistantMessage += cleanChunk;
-          } else {
-            assistantMessage += chunk;
+            toolDataParsed = JSON.parse(match[1]);
           }
+          assistantText += chunk.replace(
+            /__TOOL_DATA__.+?__END_TOOL_DATA__/,
+            "",
+          );
         } else {
-          assistantMessage += chunk;
+          assistantText += chunk;
         }
 
         setMessages((prev) =>
@@ -177,66 +181,47 @@ export function ChatInterface({
             m.id === assistantId
               ? {
                   ...m,
-                  content: assistantMessage,
-                  toolData: toolDataParsed || undefined,
+                  content: assistantText,
                 }
               : m,
           ),
         );
       }
 
-      await saveMessage(convId, "assistant", assistantMessage, toolDataParsed);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, toolData: toolDataParsed || undefined }
+            : m,
+        ),
+      );
 
-      // Check for achievements
-      if (isFirstMessage) {
-        unlockAchievement("first_chat");
-      }
+      await saveMessage(convId!, "assistant", assistantText, toolDataParsed);
 
-      // Check for tool usage achievements
+      if (isFirstMessage) unlockAchievement("first_chat");
       if (toolDataParsed) {
-        if (toolDataParsed.type === "weather") {
-          unlockAchievement("weather");
-        } else if (toolDataParsed.type === "f1") {
-          unlockAchievement("f1");
-        } else if (toolDataParsed.type === "stock") {
-          unlockAchievement("stock");
-        }
-
-        // Check if all tools have been used
+        unlockAchievement(toolDataParsed.type);
         checkAllToolsUnlocked();
       }
 
-      // Check for 10 conversation milestone
-      const count = await getConversationCount();
-      if (count === 10) {
+      if ((await getConversationCount()) === 10) {
         unlockAchievement("milestone_10");
       }
 
       if (needsNavigation && !hasNavigatedRef.current) {
         hasNavigatedRef.current = true;
         router.push(`/chat/${convId}`);
-      } else {
-        router.refresh();
       }
-    } catch (error) {
-      console.error("Chat error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          role: "assistant",
-          content:
-            "Sorry, there was an error processing your request. Please try again.",
-        },
-      ]);
+    } catch (err) {
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  /* -------------------- UI -------------------- */
   return (
-    <div className="flex flex-col h-full relative">
-      {/* Achievement Badge Animation */}
+    <div className="flex flex-col h-full min-h-0">
       {pendingAchievement && (
         <AchievementBadge
           type={pendingAchievement}
@@ -244,125 +229,78 @@ export function ChatInterface({
         />
       )}
 
-      {/* Background Effects */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-slate-500/5 rounded-full blur-3xl" />
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      {/* Messages */}
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-6"
+      >
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-6 max-w-md">
-              <div className="relative inline-block">
-                <div className="absolute inset-0 bg-foreground/10 blur-2xl rounded-full" />
-                <Sparkles className="h-16 w-16 text-foreground relative" />
-              </div>
-              <div className="space-y-3">
-                <h2 className="text-3xl font-bold">Welcome to Lumina! 🌟</h2>
-                <p className="text-muted-foreground text-lg">
-                  Your AI assistant is ready to help. Start a conversation!
-                </p>
-              </div>
-              <div className="grid grid-cols-1 gap-3 text-sm text-left mt-8">
-                <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
-                  <p className="text-muted-foreground">
-                    💬 Ask me anything about weather, F1 races, or stock prices
-                  </p>
-                </Card>
-                <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
-                  <p className="text-muted-foreground">
-                    🌍 Get real-time data from around the world
-                  </p>
-                </Card>
-                <Card className="p-4 border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
-                  <p className="text-muted-foreground">
-                    ⚡ Lightning-fast responses powered by AI
-                  </p>
-                </Card>
-              </div>
+          <div className="flex h-full items-center justify-center">
+            <div className="text-center space-y-6">
+              <Sparkles className="h-16 w-16 mx-auto" />
+              <h2 className="text-3xl font-bold">Welcome to Lumina 🌟</h2>
+              <p className="text-muted-foreground">
+                Start typing to begin a conversation
+              </p>
             </div>
           </div>
         ) : (
-          <>
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                } animate-fade-in`}
-              >
-                <div className={`max-w-[80%] space-y-3`}>
-                  {/* Render tool card if available */}
-                  {message.toolData && (
-                    <div className="animate-fade-in">
-                      {message.toolData.type === "weather" && (
-                        <WeatherCard data={message.toolData.data} />
-                      )}
-                      {message.toolData.type === "f1" && (
-                        <F1RaceCard data={message.toolData.data} />
-                      )}
-                      {message.toolData.type === "stock" && (
-                        <StockCard data={message.toolData.data} />
-                      )}
-                    </div>
-                  )}
+          messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div className="max-w-[80%] space-y-3">
+                {message.toolData && (
+                  <>
+                    {message.toolData.type === "weather" && (
+                      <WeatherCard data={message.toolData.data} />
+                    )}
+                    {message.toolData.type === "f1" && (
+                      <F1RaceCard data={message.toolData.data} />
+                    )}
+                    {message.toolData.type === "stock" && (
+                      <StockCard data={message.toolData.data} />
+                    )}
+                  </>
+                )}
 
-                  {/* Regular message card */}
-                  {message.content && (
-                    <Card
-                      className={`p-4 transition-all duration-300 ${
-                        message.role === "user"
-                          ? "bg-foreground text-background border-transparent shadow-lg"
-                          : "bg-card border-border backdrop-blur-sm hover:shadow-md"
-                      }`}
-                    >
-                      <div className="whitespace-pre-wrap">
-                        {message.content || (
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm text-muted-foreground">
-                              Thinking...
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </Card>
-                  )}
-                </div>
+                <Card
+                  className={`p-4 ${
+                    message.role === "user"
+                      ? "bg-foreground text-background"
+                      : "bg-card"
+                  }`}
+                >
+                  <div className="whitespace-pre-wrap break-words">
+                    {message.content || (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
+                  </div>
+                </Card>
               </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </>
+            </div>
+          ))
         )}
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-border bg-card/50 backdrop-blur-xl p-4">
+      {/* Input */}
+      <div className="border-t bg-background p-4">
         <form onSubmit={handleSubmit} className="flex gap-3 max-w-4xl mx-auto">
-          <div className="flex-1 relative">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Type your message..."
-              disabled={isLoading}
-              className="pr-12 h-12 bg-background/50 backdrop-blur-sm border-border focus:border-foreground/50 transition-colors"
-              autoFocus
-            />
-            {isLoading && (
-              <Loader2 className="h-4 w-4 animate-spin absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            )}
-          </div>
-          <Button
-            type="submit"
-            disabled={isLoading || !inputValue.trim()}
-            size="lg"
-            className="h-12 px-6 bg-foreground hover:bg-foreground/90 text-background transition-all duration-300"
-          >
+          <Input
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Type your message…"
+            disabled={isLoading}
+          />
+          <Button disabled={isLoading || !inputValue.trim()}>
             {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Send className="h-5 w-5" />
+              <Send className="h-4 w-4" />
             )}
           </Button>
         </form>
