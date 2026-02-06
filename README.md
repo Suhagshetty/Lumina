@@ -8,17 +8,17 @@ A modern, AI-powered chat assistant built with Next.js that integrates real-worl
 
 ## Features
 
-- ** OAuth Authentication** - Secure login with Google & GitHub
-- ** AI Chat Interface** - Streaming responses with Vercel AI SDK
-- ** Tool Calling** - Real-time data fetching:
-  - **Weather**: Live weather data for any location
-  - **F1 Schedules**: Upcoming Formula 1 races
-  - **Stock Prices**: Real-time stock market data
-- ** Chat History** - Persistent conversation storage
-- ** Dark Mode** - Beautiful dark/light theme support
-- ** Responsive Design** - Works on all devices
+- OAuth Authentication - Secure login with Google & GitHub
+- AI Chat Interface - Streaming responses with Vercel AI SDK
+- Tool Calling - Real-time data fetching:
+- Weather: Live weather data for any location
+- F1 Schedules: Upcoming Formula 1 races
+- Stock Prices: Real-time stock market data
+- Chat History - Persistent conversation storage
+- Dark Mode - Beautiful dark/light theme support
+- Responsive Design - Works on all devices
 
-##  Tech Stack
+## Tech Stack
 
 - **Frontend**: Next.js 15 (App Router) with TypeScript
 - **Database**: Drizzle ORM + Neon DB
@@ -28,7 +28,7 @@ A modern, AI-powered chat assistant built with Next.js that integrates real-worl
 - **Styling**: Tailwind CSS
 - **Deployment**: Vercel
 
-##  Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have:
 
