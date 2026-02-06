@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatInterface } from "@/components/chat/ChatInterface";
 import { ChatHistory } from "@/components/chat/ChatHistory";
-import { getConversations, getConversationMessages } from "@/actions/chat";
+import {
+  getConversations,
+  getConversationMessages,
+} from "@/actions/chat";
 
 export default async function ConversationPage({
   params,
